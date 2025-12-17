@@ -4,152 +4,265 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>Balady Redirect Deployer (v2)</title>
+  <title>Balady Redirect Deployer — Pro</title>
   <style>
-    :root{--bg:#0b1020;--card:rgba(255,255,255,.06);--stroke:rgba(255,255,255,.12);--muted:rgba(255,255,255,.75)}
-    body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:#fff;
-      font-family:system-ui,"Noto Sans Arabic",Tahoma,Arial}
-    .card{width:min(980px,calc(100% - 28px));background:var(--card);border:1px solid var(--stroke);
-      border-radius:16px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
-    input,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--stroke);
-      background:rgba(0,0,0,.25);color:#fff;outline:none}
-    textarea{min-height:140px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace}
-    label{display:block;margin:10px 0 6px;color:var(--muted);font-size:13px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    @media (max-width:860px){.row{grid-template-columns:1fr}}
-    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    button{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);
-      background:linear-gradient(135deg,#7c3aed,#22d3ee);color:#fff;cursor:pointer}
-    button.secondary{background:rgba(255,255,255,.08)}
-    button.danger{background:rgba(239,68,68,.20);border-color:rgba(239,68,68,.35)}
-    .muted{color:var(--muted);font-size:13px;line-height:1.6}
-    .status{margin-top:12px;padding:12px;border-radius:12px;border:1px dashed rgba(255,255,255,.18);
-      background:rgba(0,0,0,.18);font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
-    .pill{display:inline-flex;gap:8px;align-items:center;border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.18);border-radius:999px;padding:8px 10px;font-family:ui-monospace,Menlo,Consolas,monospace}
-    .top{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    :root{
+      --bg0:#070A12; --bg1:#0B1020;
+      --card: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --a:#7C3AED; --b:#22D3EE;
+      --ok:#22C55E; --bad:#EF4444; --warn:#F59E0B;
+      --radius: 16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI","Noto Sans Arabic", Tahoma, Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; color:var(--text); font-family:var(--sans);
+      background:
+        radial-gradient(1000px 700px at 15% 10%, rgba(124,58,237,.35), transparent 60%),
+        radial-gradient(900px 600px at 90% 20%, rgba(34,211,238,.25), transparent 55%),
+        linear-gradient(180deg,var(--bg0),var(--bg1));
+      display:grid; place-items:center;
+      padding:18px;
+    }
+    .wrap{width:min(1100px,100%); display:grid; gap:12px}
+    .card{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      box-shadow:0 20px 60px rgba(0,0,0,.45);
+      backdrop-filter: blur(10px);
+      overflow:hidden;
+    }
+    header{padding:14px 14px 12px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between}
+    .brand{display:flex; gap:12px; align-items:center}
+    .logo{
+      width:44px; height:44px; border-radius:14px;
+      background: linear-gradient(135deg, var(--a), var(--b));
+      box-shadow: 0 10px 30px rgba(124,58,237,.35);
+      position:relative;
+    }
+    .logo:before{content:""; position:absolute; inset:9px; border-radius:12px; border:1px solid rgba(255,255,255,.35)}
+    .t b{display:block; font-size:15px}
+    .t span{display:block; font-size:12px; color:var(--muted); margin-top:2px}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      font-family: var(--mono);
+      font-size:12px;
+    }
+    .body{padding:0 14px 14px}
+    label{display:block; margin:10px 0 6px; font-size:12px; color:var(--muted)}
+    input, textarea, select{
+      width:100%;
+      padding:10px 12px;
+      background: rgba(0,0,0,.24);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:12px;
+      color:var(--text);
+      outline:none;
+      font-family: var(--sans);
+    }
+    textarea{min-height:160px; resize:vertical; font-family:var(--mono)}
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    @media (max-width: 860px){ .grid{grid-template-columns:1fr} }
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    @media (max-width: 700px){ .row{grid-template-columns:1fr} }
+    .btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    button{
+      padding:10px 12px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(34,211,238,.70));
+      color:var(--text);
+      cursor:pointer;
+      user-select:none;
+      transition:.15s transform, .15s opacity;
+      font-family:var(--sans);
+    }
+    button:hover{transform:translateY(-1px)}
+    button:active{transform:translateY(0)}
+    button.secondary{background: rgba(255,255,255,.08)}
+    button.danger{background: rgba(239,68,68,.16); border-color: rgba(239,68,68,.35)}
+    button.warn{background: rgba(245,158,11,.16); border-color: rgba(245,158,11,.35)}
+    .hint{font-size:12px; color:var(--muted); margin-top:6px; line-height:1.6}
+    .status{
+      padding:12px; border-top:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.18);
+      font-family: var(--mono);
+      white-space: pre-wrap;
+      font-size:12px;
+      min-height: 96px;
+    }
+    .bar{
+      height:10px; border-radius:999px; overflow:hidden;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.08);
+      margin-top:10px;
+    }
+    .bar > div{height:100%; width:0%; background: linear-gradient(90deg, var(--a), var(--b))}
+    .mono{font-family:var(--mono)}
     .small{font-size:12px;color:var(--muted)}
-    hr{border:none;border-top:1px solid rgba(255,255,255,.10);margin:12px 0}
+    .line{height:1px;background:rgba(255,255,255,.08);margin:12px 0}
+    .kpi{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    .kpi .pill{opacity:.95}
   </style>
 </head>
 
 <body>
-  <div class="card">
-    <div class="top">
-      <div>
-        <h2 style="margin:0 0 6px">نشر تحويلات balady (0 ثانية) — v2</h2>
-        <div class="muted">
-          هذه أداة نشر فقط: ترفع ملفات HTML داخل مستودع <b>balady-sa-gove.github.io</b> تحت <span style="font-family:ui-monospace">balady.sa.gov/ID.html</span>.
+  <div class="wrap">
+    <section class="card">
+      <header>
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div class="t">
+            <b>نشر تحويلات balady (0 ثانية) — Pro</b>
+            <span>توليد/تحديث صفحات Redirect داخل balady-sa-gove.github.io/balady.sa.gov/ID.html</span>
+          </div>
         </div>
-      </div>
-      <div class="pill" id="readyPill">Ready</div>
-    </div>
+        <div class="kpi">
+          <div class="pill" id="pillState">Ready</div>
+          <div class="pill" id="pillVer">v: —</div>
+        </div>
+      </header>
 
-    <hr>
+      <div class="body">
+        <div class="grid">
+          <div>
+            <label>GitHub Token (لا يتم حفظه)</label>
+            <input id="token" placeholder="ghp_..." autocomplete="off" />
+            <div class="hint">تنبيه: هذه أداة قوية؛ استخدمها شخصيًا فقط.</div>
+          </div>
 
-    <div class="row">
-      <div>
-        <label>GitHub Token (لا يتم حفظه)</label>
-        <input id="token" placeholder="ghp_...">
-        <div class="small">أمانًا: استخدم هذه الصفحة للاستخدام الشخصي فقط.</div>
-      </div>
-      <div>
-        <label>Branch</label>
-        <input id="branch" value="main">
-      </div>
-    </div>
+          <div class="row">
+            <div>
+              <label>Owner</label>
+              <input id="owner" value="balady-sa-gove" class="mono" />
+            </div>
+            <div>
+              <label>Repo</label>
+              <input id="repo" value="balady-sa-gove.github.io" class="mono" />
+            </div>
+          </div>
+        </div>
 
-    <div class="row">
-      <div>
-        <label>Owner</label>
-        <input id="owner" value="balady-sa-gove">
-      </div>
-      <div>
-        <label>Repo</label>
-        <input id="repo" value="balady-sa-gove.github.io">
-      </div>
-    </div>
+        <div class="row">
+          <div>
+            <label>Branch</label>
+            <input id="branch" value="main" class="mono" />
+          </div>
+          <div>
+            <label>Old folder داخل الريبو</label>
+            <input id="oldFolder" value="balady.sa.gov" class="mono" />
+            <div class="hint">سيتم إنشاء: <span class="mono">balady.sa.gov/ID.html</span></div>
+          </div>
+        </div>
 
-    <div class="row">
-      <div>
-        <label>Old folder داخل الريبو</label>
-        <input id="oldFolder" value="balady.sa.gov">
+        <div class="row">
+          <div>
+            <label>قالب الرابط الجديد (ضع {id})</label>
+            <input id="tpl" value="https://services-balady-gov-sa.page.gd/health/issue/PrintedLicenses/{id}" class="mono" />
+            <div class="hint">مثال: <span class="mono">.../PrintedLicenses/401290793009</span></div>
+          </div>
+          <div>
+            <label>تهدئة بين الطلبات (ملّي ثانية)</label>
+            <select id="delay">
+              <option value="150">150 (سريع)</option>
+              <option value="250">250</option>
+              <option value="400" selected>400 (مستقر لـ 1000 ملف)</option>
+              <option value="650">650 (آمن جدًا)</option>
+              <option value="1000">1000 (بطئ)</option>
+            </select>
+            <div class="hint">تخفيف الضغط يقلل “secondary rate limit”.</div>
+          </div>
+        </div>
+
+        <label>الأرقام (سطر لكل رقم) — حتى 1000+</label>
+        <textarea id="ids" placeholder="401290793009&#10;401290793010&#10;..."></textarea>
+        <div class="hint">
+          سيتم تجاهل أي سطر غير رقمي. لو عندك روابط كاملة بدل الأرقام، فقط ألصقها وسيستخرج الرقم منها تلقائيًا.
+        </div>
+
+        <div class="btns">
+          <button id="btnPreview" type="button" class="secondary">معاينة</button>
+          <button id="btnSelfTest" type="button" class="secondary">اختبار اتصال GitHub</button>
+          <button id="btnDeploy" type="button">نشر 0 ثانية الآن</button>
+          <button id="btnStop" type="button" class="warn">إيقاف</button>
+          <button id="btnCacheBust" type="button" class="secondary">فتح بدون كاش</button>
+          <button id="btnClear" type="button" class="danger">مسح التوكن</button>
+        </div>
+
+        <div class="bar" aria-label="progress"><div id="bar"></div></div>
+        <div class="small" id="stats">OK=0 | FAIL=0 | DONE=0/0</div>
       </div>
-      <div>
-        <label>قالب الرابط الجديد (ضع {id})</label>
-        <input id="tpl" value="https://services-balady-gov-sa.page.gd/health/issue/PrintedLicenses/{id}">
-      </div>
-    </div>
 
-    <label>الأرقام (سطر لكل رقم)</label>
-    <textarea id="ids" placeholder="401290793009&#10;401290793010"></textarea>
-
-    <div class="btns">
-      <button id="btnPreview" type="button" class="secondary">معاينة</button>
-      <button id="btnDeploy" type="button">نشر الآن</button>
-      <button id="btnSelfTest" type="button" class="secondary">اختبار اتصال GitHub</button>
-      <button id="btnClear" type="button" class="danger">مسح الحقول الحساسة</button>
-    </div>
-
-    <div class="status" id="st">جاهز. إذا لم تستجب الأزرار افتح Console.</div>
+      <div class="status" id="st">جاهز. استخدم "معاينة" ثم "نشر".</div>
+    </section>
   </div>
 
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
   const st = (s) => { $("st").textContent = s; };
-  const pill = (s) => { $("readyPill").textContent = s; };
+  const pill = (s) => { $("pillState").textContent = s; };
+  const setBar = (p) => { $("bar").style.width = Math.max(0, Math.min(100, p)) + "%"; };
+  const setStats = (ok, fail, done, total) => { $("stats").textContent = `OK=${ok} | FAIL=${fail} | DONE=${done}/${total}`; };
 
-  // عرض أي خطأ JS على الشاشة بدل “صمت”
-  window.addEventListener("error", (e) => {
-    st("JS Error:\n" + (e?.message || String(e)));
-    pill("JS error");
-  });
-  window.addEventListener("unhandledrejection", (e) => {
-    st("Unhandled promise:\n" + (e?.reason?.message || String(e?.reason || e)));
-    pill("Promise error");
-  });
+  // Version stamp (يساعدك تعرف أنك على آخر نسخة)
+  const ver = new Date().toISOString().replace(/[-:TZ.]/g,"").slice(0,14);
+  $("pillVer").textContent = "v: " + ver;
 
-  const idsFromText = (t) => (t || "")
-    .split(/\r?\n/)
-    .map(x => x.trim())
-    .filter(Boolean)
-    .filter(x => /^[0-9]+$/.test(x));
+  // إظهار أي خطأ JS بدل الصمت
+  window.addEventListener("error", (e) => { pill("JS error"); st("JS Error:\n" + (e?.message || String(e))); });
+  window.addEventListener("unhandledrejection", (e) => { pill("Promise error"); st("Unhandled:\n" + (e?.reason?.message || String(e?.reason || e))); });
 
-  const applyTemplate = (tpl, id) => String(tpl).replace(/\{id\}/g, id);
+  // Abort
+  let run = { stop:false, controller:null };
 
-  const toB64utf8 = (str) => btoa(String.fromCharCode(...new TextEncoder().encode(str)));
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
-  function redirectHtml(toUrl) {
-    // meta refresh 0 ثانية + fallback JS
-    return `<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <title>Redirecting...</title>
-  <meta http-equiv="refresh" content="0; URL=${toUrl}">
-  <link rel="canonical" href="${toUrl}">
-</head>
-<body>
-  <p>يتم تحويلك تلقائيًا… إذا لم يحدث ذلك افتح:
-    <a href="${toUrl}">الرابط الجديد</a>
-  </p>
-  <script>location.replace(${JSON.stringify(toUrl)});</script>
-</body>
-</html>`;
+  function toB64utf8(str){
+    return btoa(String.fromCharCode(...new TextEncoder().encode(str)));
   }
 
-  function readCfg() {
-    const token = $("token").value.trim();
-    const owner = $("owner").value.trim();
-    const repo = $("repo").value.trim();
-    const branch = ($("branch").value.trim() || "main");
-    const oldFolder = ($("oldFolder").value.trim().replace(/^\/+|\/+$/g, ""));
-    const tpl = $("tpl").value.trim();
-    return { token, owner, repo, branch, oldFolder, tpl };
+  function applyTemplate(tpl, id){
+    return String(tpl).replace(/\{id\}/g, id);
   }
 
-  function ghHeaders(token) {
+  function normalizeFolder(s){
+    return String(s || "").trim().replace(/^\/+|\/+$/g, "");
+  }
+
+  function extractIds(text){
+    const lines = (text || "").split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+    const ids = [];
+    for (const line of lines){
+      // يسمح بوضع رقم فقط أو رابط كامل؛ يأخذ أطول سلسلة أرقام
+      const m = line.match(/(\d{6,})/g);
+      if (!m) continue;
+      ids.push(m.sort((a,b)=> b.length - a.length)[0]);
+    }
+    // dedupe + limit display safety (لا يمنع أكثر، لكن يريح واجهة)
+    return Array.from(new Set(ids));
+  }
+
+  function cfg(){
+    return {
+      token: $("token").value.trim(),
+      owner: $("owner").value.trim(),
+      repo: $("repo").value.trim(),
+      branch: ($("branch").value.trim() || "main"),
+      oldFolder: normalizeFolder($("oldFolder").value),
+      tpl: $("tpl").value.trim(),
+      delay: parseInt($("delay").value, 10) || 400
+    };
+  }
+
+  function ghHeaders(token){
     return {
       "Accept": "application/vnd.github+json",
       "Authorization": `Bearer ${token}`,
@@ -157,140 +270,293 @@
     };
   }
 
-  async function getSha({token, owner, repo, path, branch}) {
+  function buildRedirectHtml(toUrl){
+    // مهم: وجود </script> حرفيًا داخل template literal يكسر سكربت الصفحة
+    // لذلك نستخدم <\/script> داخل النص.
+    return `<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="0; URL=${toUrl}">
+  <link rel="canonical" href="${toUrl}">
+  <meta name="robots" content="noindex">
+  <title>Redirecting...</title>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,"Noto Sans Arabic",Tahoma,Arial;background:#0b1020;color:#fff}
+    a{color:#22D3EE}
+    .box{max-width:720px;padding:16px 14px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.06)}
+    .mono{font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-word}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div>جارٍ التحويل...</div>
+    <div class="mono" style="opacity:.85;margin-top:8px">${toUrl}</div>
+    <p style="opacity:.85">إذا لم يتم التحويل تلقائيًا:
+      <a href="${toUrl}">اضغط هنا</a>
+    </p>
+  </div>
+  <script>location.replace(${JSON.stringify(toUrl)});<\/script>
+</body>
+</html>`;
+  }
+
+  // Rate limit / secondary rate-limit handling
+  function parseRetrySeconds(resp){
+    const ra = resp.headers.get("retry-after");
+    if (ra && /^\d+$/.test(ra)) return parseInt(ra, 10);
+    const remaining = resp.headers.get("x-ratelimit-remaining");
+    const reset = resp.headers.get("x-ratelimit-reset");
+    if (remaining === "0" && reset && /^\d+$/.test(reset)){
+      const now = Math.floor(Date.now()/1000);
+      return Math.max(1, parseInt(reset,10) - now);
+    }
+    return null;
+  }
+
+  async function fetchWithBackoff(url, init, opts = {}){
+    const max = opts.maxRetries ?? 6;
+    const baseWaitMs = opts.baseWaitMs ?? 1200;
+
+    let attempt = 0;
+    while (true){
+      attempt++;
+      const resp = await fetch(url, init);
+
+      // success
+      if (resp.ok) return resp;
+
+      // stop if aborted
+      if (init?.signal?.aborted) throw new Error("تم الإيقاف.");
+
+      // handle rate limits / secondary
+      if (resp.status === 403 || resp.status === 429){
+        const sec = parseRetrySeconds(resp);
+        if (sec != null){
+          const waitMs = (sec * 1000) + 250;
+          if (attempt > max) throw new Error(`Rate limited (HTTP ${resp.status}).`);
+          st(`Rate limit: انتظار ${sec}s ثم إعادة المحاولة...`);
+          await sleep(waitMs);
+          continue;
+        }
+      }
+
+      // transient server errors
+      if ([500,502,503,504].includes(resp.status)){
+        if (attempt > max) throw new Error(`Server error HTTP ${resp.status}.`);
+        const wait = baseWaitMs * Math.pow(2, attempt-1);
+        await sleep(Math.min(wait, 20000));
+        continue;
+      }
+
+      // other errors: no retry
+      return resp;
+    }
+  }
+
+  async function getShaIfExists({token, owner, repo, branch, path, signal}){
     const api = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
-    const r = await fetch(api, { headers: ghHeaders(token) });
+    const r = await fetchWithBackoff(api, { headers: ghHeaders(token), signal }, { maxRetries: 4 });
     if (r.status === 404) return null;
-    if (!r.ok) throw new Error(`GET sha failed: ${r.status}\n` + await r.text());
+    if (!r.ok) throw new Error(`GET sha failed: HTTP ${r.status}\n${await r.text()}`);
     const j = await r.json();
     return j.sha || null;
   }
 
-  async function putFile({token, owner, repo, path, branch, message, contentB64, sha}) {
+  async function putContents({token, owner, repo, branch, path, message, contentB64, sha, signal}){
     const api = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}`;
     const body = { message, content: contentB64, branch };
     if (sha) body.sha = sha;
 
-    const r = await fetch(api, {
+    const r = await fetchWithBackoff(api, {
       method: "PUT",
-      headers: { ...ghHeaders(token), "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-    if (!r.ok) throw new Error(`PUT failed: ${r.status}\n` + await r.text());
-    return r.json();
+      headers: { ...ghHeaders(token), "Content-Type":"application/json" },
+      body: JSON.stringify(body),
+      signal
+    }, { maxRetries: 6 });
+
+    return r;
   }
 
-  async function selfTest() {
-    const { token, owner, repo } = readCfg();
+  async function upsertFileSmart({token, owner, repo, branch, path, html, signal}){
+    const contentB64 = toB64utf8(html);
+    const message = `Redirect ${path}`;
+
+    // 1) جرّب PUT بدون sha (ينجح لو ملف جديد)
+    let r = await putContents({ token, owner, repo, branch, path, message, contentB64, sha:null, signal });
+
+    // 2) لو يطلب sha أو صار conflict: اجلب sha ثم أعد PUT
+    if (!r.ok){
+      const txt = await r.text();
+      const needsSha = r.status === 422 && /sha/i.test(txt);
+      const conflict = r.status === 409;
+
+      if (needsSha || conflict){
+        const sha = await getShaIfExists({ token, owner, repo, branch, path, signal });
+        r = await putContents({ token, owner, repo, branch, path, message, contentB64, sha, signal });
+        if (!r.ok){
+          const txt2 = await r.text();
+          throw new Error(`PUT failed: HTTP ${r.status}\n${txt2}`);
+        }
+        return await r.json();
+      }
+
+      throw new Error(`PUT failed: HTTP ${r.status}\n${txt}`);
+    }
+
+    return await r.json();
+  }
+
+  async function selfTest(){
+    const { token, owner, repo } = cfg();
     if (!token) return st("ضع التوكن أولاً.");
     if (!owner || !repo) return st("أكمل owner/repo.");
-
     pill("Testing...");
     st("اختبار اتصال GitHub...");
+
     const api = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`;
-    const r = await fetch(api, { headers: ghHeaders(token) });
+    const r = await fetchWithBackoff(api, { headers: ghHeaders(token) }, { maxRetries: 4 });
     const txt = await r.text();
-    if (!r.ok) {
+
+    if (!r.ok){
       pill("Fail");
-      st(`فشل الاتصال.\nHTTP ${r.status}\n${txt}`);
+      st(`فشل.\nHTTP ${r.status}\n${txt}`);
       return;
     }
+
     pill("OK");
-    st("الاتصال ممتاز. تم الوصول للمستودع.\n" + txt.slice(0, 260) + (txt.length > 260 ? "\n..." : ""));
+    st("الاتصال ممتاز. تم الوصول للمستودع.\n" + txt.slice(0, 300) + (txt.length>300 ? "\n..." : ""));
   }
 
-  async function deployOne(id) {
-    const { token, owner, repo, branch, oldFolder, tpl } = readCfg();
-    if (!token) throw new Error("ضع التوكن أولاً.");
-    if (!owner || !repo) throw new Error("أكمل owner/repo.");
-    if (!oldFolder) throw new Error("حدد oldFolder.");
-    if (!tpl.includes("{id}")) throw new Error("القالب لازم يحتوي {id}.");
+  function preview(){
+    const { oldFolder, tpl } = cfg();
+    const ids = extractIds($("ids").value);
+    if (!ids.length) return st("لا يوجد أرقام. ضع رقمًا أو رابطًا يحتوي رقمًا.");
+    if (!tpl.includes("{id}")) return st("القالب لازم يحتوي {id}.");
+    if (!oldFolder) return st("حدد oldFolder.");
 
-    const toUrl = applyTemplate(tpl, id);
-    let path = `${oldFolder}/${id}.html`;
-
-    // تأكد أن ما في مسافات
-    path = path.replace(/\s+/g, "");
-
-    // جهز HTML
-    const html = redirectHtml(toUrl);
-    const contentB64 = toB64utf8(html);
-
-    // sha لو موجود
-    const sha = await getSha({ token, owner, repo, path, branch });
-    const res = await putFile({
-      token, owner, repo, path, branch,
-      sha,
-      message: `Redirect ${id} -> ${toUrl}`,
-      contentB64
-    });
-
-    return { path, toUrl, commit: res?.commit?.sha || "ok" };
-  }
-
-  async function deployBatch() {
-    const ids = idsFromText($("ids").value);
-    if (!ids.length) return st("لا يوجد أرقام صالحة. اكتب رقم في كل سطر.");
-
-    pill("Deploying...");
-    st(`بدء النشر: ${ids.length} ملف...`);
-
-    let ok = 0, fail = 0;
-    for (let i = 0; i < ids.length; i++) {
-      const id = ids[i];
-      try {
-        st(`(${i+1}/${ids.length}) نشر: ${id} ...`);
-        const out = await deployOne(id);
-        ok++;
-        st(`(${i+1}/${ids.length}) OK\npath: ${out.path}\n→ ${out.toUrl}\ncommit: ${out.commit}`);
-      } catch (e) {
-        fail++;
-        st(`(${i+1}/${ids.length}) FAIL: ${id}\n${e?.message || String(e)}`);
-      }
-    }
-
-    $("token").value = ""; // لا نحتفظ بالتوكن
-    pill(fail ? "Done (with fails)" : "Done");
     const first = ids[0];
-    st(`انتهى.\nOK=${ok}\nFAIL=${fail}\n\nاختبار:\nhttps://balady-sa-gove.github.io/balady.sa.gov/${first}.html`);
-  }
-
-  function preview() {
-    const ids = idsFromText($("ids").value);
-    const { oldFolder, tpl } = readCfg();
-    const first = ids[0];
-    if (!first) return st("اكتب رقم واحد على الأقل (سطر لكل رقم).");
-
     const toUrl = applyTemplate(tpl, first);
-    const oldUrl = `https://balady-sa-gove.github.io/${oldFolder.replace(/^\/+|\/+$/g,"")}/${first}.html`;
+    const oldUrl = `https://balady-sa-gove.github.io/${normalizeFolder(oldFolder)}/${first}.html`;
 
     st(
-`معاينة (مثال لأول رقم):
-old path: ${oldFolder}/${first}.html
-old URL : ${oldUrl}
-new URL : ${toUrl}
+`معاينة (أول عنصر):
+Old URL : ${oldUrl}
+New URL : ${toUrl}
+Path    : ${oldFolder}/${first}.html
 
-إذا كل شيء صحيح اضغط: نشر الآن`
+إذا صحيح اضغط: نشر 0 ثانية الآن`
     );
   }
 
-  function clearSensitive() {
+  async function deploy(){
+    const c = cfg();
+    const ids = extractIds($("ids").value);
+
+    if (!c.token) return st("ضع التوكن أولاً.");
+    if (!c.owner || !c.repo) return st("أكمل owner/repo.");
+    if (!c.tpl.includes("{id}")) return st("القالب لازم يحتوي {id}.");
+    if (!c.oldFolder) return st("حدد oldFolder.");
+    if (!ids.length) return st("لا يوجد أرقام صالحة.");
+    if (ids.length > 1200) st("تنبيه: عدد كبير جدًا. الأفضل تقسيمه دفعات لتفادي أي حدود.");
+
+    run.stop = false;
+    run.controller = new AbortController();
+
+    pill("Deploying...");
+    setBar(0);
+
+    let ok = 0, fail = 0, done = 0, total = ids.length;
+    setStats(ok, fail, done, total);
+
+    st(`بدء النشر: ${total} ملف...\nDelay=${c.delay}ms`);
+
+    for (let i=0;i<ids.length;i++){
+      if (run.stop) break;
+
+      const id = ids[i];
+      const toUrl = applyTemplate(c.tpl, id);
+      const path = `${c.oldFolder}/${id}.html`.replace(/\s+/g,"");
+      const html = buildRedirectHtml(toUrl);
+
+      try{
+        st(`(${i+1}/${total}) نشر: ${path}\n→ ${toUrl}`);
+        await upsertFileSmart({
+          token: c.token,
+          owner: c.owner,
+          repo: c.repo,
+          branch: c.branch,
+          path,
+          html,
+          signal: run.controller.signal
+        });
+        ok++;
+      }catch(e){
+        fail++;
+        st(`(${i+1}/${total}) FAIL: ${path}\n${e?.message || String(e)}`);
+      }
+
+      done++;
+      setStats(ok, fail, done, total);
+      setBar(Math.round((done/total)*100));
+
+      // تهدئة ثابتة + تهدئة إضافية كل 40 ملف
+      await sleep(c.delay);
+      if (done % 40 === 0) await sleep(900);
+    }
+
+    // لا نمسح التوكن تلقائيًا لو توقف المستخدم (أحيانًا يكمل)
+    if (!run.stop) $("token").value = "";
+
+    const first = ids[0] || "ID";
+    const testUrl = `https://balady-sa-gove.github.io/${c.oldFolder}/${first}.html`;
+
+    pill(run.stop ? "Stopped" : (fail ? "Done (fails)" : "Done"));
+    st(
+`انتهى.
+OK=${ok}
+FAIL=${fail}
+DONE=${done}/${total}
+
+اختبار مباشر:
+${testUrl}
+
+ملاحظة: قد تحتاج GitHub Pages دقيقة للتحديث.`
+    );
+  }
+
+  function stop(){
+    run.stop = true;
+    try{ run.controller?.abort(); }catch{}
+    pill("Stopping...");
+    st("تم طلب الإيقاف...");
+  }
+
+  function clearToken(){
     $("token").value = "";
     pill("Ready");
     st("تم مسح التوكن.");
   }
 
+  function openCacheBusted(){
+    const u = new URL(location.href);
+    u.searchParams.set("v", String(Date.now()));
+    location.href = u.toString();
+  }
+
   // Bind
   document.addEventListener("DOMContentLoaded", () => {
     $("btnPreview").addEventListener("click", preview);
-    $("btnDeploy").addEventListener("click", () => deployBatch());
-    $("btnSelfTest").addEventListener("click", () => selfTest());
-    $("btnClear").addEventListener("click", clearSensitive);
+    $("btnSelfTest").addEventListener("click", selfTest);
+    $("btnDeploy").addEventListener("click", deploy);
+    $("btnStop").addEventListener("click", stop);
+    $("btnClear").addEventListener("click", clearToken);
+    $("btnCacheBust").addEventListener("click", openCacheBusted);
 
     pill("Ready");
-    st("جاهز. اكتب الأرقام ثم معاينة ثم نشر.");
+    setStats(0,0,0,0);
   });
 })();
 </script>
 </body>
-    </html>
+</html>
