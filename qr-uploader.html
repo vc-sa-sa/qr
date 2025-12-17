@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رفع HTML + QR Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .container { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 30px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        input, textarea, button { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        button { background: #4CAF50; color: white; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+        button:hover { background: #45a049; transform: translateY(-2px); }
+        button:disabled { background: #666; cursor: not-allowed; }
+        #qrCanvas { border: 3px solid white; border-radius: 15px; margin: 20px 0; background: white; }
+        .status { padding: 15px; border-radius: 10px; margin: 10px 0; font-weight: bold; }
+        .success { background: #4CAF50; }
+        .error { background: #f44336; }
+        .loading { background: #ff9800; }
+        .url-box { background: #2c3e50; padding: 15px; border-radius: 10px; word-break: break-all; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 رفع HTML + إنشاء QR Code</h1>
+        
+        <input type="text" id="token" placeholder="GitHub Personal Access Token (ghp_...)" />
+        <input type="text" id="filename" placeholder="اسم الملف (مثال: 4010108008769.html)" />
+        
+        <textarea id="htmlContent" rows="8" placeholder="المحتوى HTML هنا... أو اسحب ملف HTML"></textarea>
+        
+        <button onclick="uploadAndGenerate()">📤 رفع وإنشاء QR</button>
+        
+        <div id="status"></div>
+        <canvas id="qrCanvas" width="300" height="300" style="display:none;"></canvas>
+        <div id="resultUrl" class="url-box" style="display:none;"></div>
+        <button id="downloadBtn" onclick="downloadQR()" style="display:none;">💾 تحميل QR</button>
+        
+        <hr style="margin: 30px 0;">
+        <h3>📋 تعليمات سريعة:</h3>
+        <ol>
+            <li>احصل على <a href="https://github.com/settings/tokens" target="_blank" style="color:#4CAF50;">GitHub Token</a> (repo permissions)</li>
+            <li>ضع الـ Token + اسم الملف + HTML</li>
+            <li>اضغط "رفع وإنشاء QR" → انتهى!</li>
+        </ol>
+    </div>
+
+    <script>
+        // إعدادات GitHub
+        const REPO_OWNER = 'balady-sa-gove';
+        const REPO_NAME = 'balady.sa.gov';
+        const BRANCH = 'main';
+        
+        // Drag & Drop للملفات HTML
+        const htmlContent = document.getElementById('htmlContent');
+        htmlContent.ondragover = e => e.preventDefault();
+        htmlContent.ondrop = e => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file.name.endsWith('.html') || file.name.endsWith('.htm')) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    htmlContent.value = e.target.result;
+                    document.getElementById('filename').value = file.name;
+                };
+                reader.readAsText(file);
+            }
+        };
+
+        async function uploadAndGenerate() {
+            const token = document.getElementById('token').value.trim();
+            const filename = document.getElementById('filename').value.trim();
+            const content = document.getElementById('htmlContent').value.trim();
+            
+            if (!token || !filename || !content) {
+                showStatus('❌ أدخل Token + اسم الملف + محتوى HTML', 'error');
+                return;
+            }
+            
+            if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
+                showStatus('❌ Token غير صحيح (يجب أن يبدأ بـ ghp_ أو github_pat_)', 'error');
+                return;
+            }
+            
+            showStatus('⏳ جاري الرفع إلى GitHub...', 'loading');
+            const btn = document.querySelector('button');
+            btn.disabled = true;
+            btn.textContent = 'جاري الرفع...';
+            
+            try {
+                // 1. فحص الملف الموجود
+                const checkUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filename}`;
+                const checkResp = await fetch(checkUrl, {
+                    headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+                });
+                let sha = null;
+                if (checkResp.ok) {
+                    const data = await checkResp.json();
+                    sha = data.sha;
+                    showStatus(`🔍 الملف موجود، جاري التحديث...`, 'loading');
+                }
+                
+                // 2. تحويل HTML إلى base64
+                const contentB64 = btoa(unescape(encodeURIComponent(content)));
+                
+                // 3. رفع الملف
+                const uploadUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filename}`;
+                const payload = {
+                    message: `Upload ${filename} via Web Uploader`,
+                    branch: BRANCH,
+                    content: contentB64
+                };
+                if (sha) payload.sha = sha;
+                
+                const uploadResp = await fetch(uploadUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!uploadResp.ok) {
+                    const error = await uploadResp.json();
+                    throw new Error(error.message || `HTTP ${uploadResp.status}`);
+                }
+                
+                // 4. إنشاء رابط GitHub Pages
+                const pageUrl = `https://${REPO_OWNER}.github.io/${REPO_NAME}/${filename}`;
+                
+                // 5. إنشاء QR
+                await QRCode.toCanvas(document.getElementById('qrCanvas'), pageUrl, {
+                    width: 300,
+                    margin: 2,
+                    color: { dark: '#000000', light: '#FFFFFF' }
+                });
+                
+                // عرض النتيجة
+                document.getElementById('resultUrl').textContent = pageUrl;
+                document.getElementById('resultUrl').style.display = 'block';
+                document.getElementById('qrCanvas').style.display = 'block';
+                document.getElementById('downloadBtn').style.display = 'block';
+                
+                showStatus(`✅ تم الرفع بنجاح!\nرابط: ${pageUrl}`, 'success');
+                navigator.clipboard.writeText(pageUrl);
+                
+            } catch (error) {
+                showStatus(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📤 رفع وإنشاء QR';
+            }
+        }
+        
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+        
+        function downloadQR() {
+            const canvas = document.getElementById('qrCanvas');
+            const link = document.createElement('a');
+            link.download = 'barcode.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // مثال HTML جاهز
+        document.getElementById('htmlContent').value = `<!DOCTYPE html>
+<html><head><title>شهادة صحية</title></head>
+<body style="font-family:Arial;text-align:center;padding:50px;background:#f0f8ff;">
+    <h1>✅ تم التحقق</h1>
+    <p>الشهادة صحيحة ومجددة</p>
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ1IiBmaWxsPSIjNERBRjUwIi8+Cjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+44OQ44O/44O/44OU44KiPC9tZXh0Pgo8L3N2Zz4K" alt="✓">
+</body></html>`;
+    </script>
+</body>
+</html>
