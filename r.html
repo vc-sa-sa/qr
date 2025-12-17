@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>SKPP Redirect</title>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,"Noto Sans Arabic",Tahoma,Arial;background:#0b1020;color:#fff}
+    .box{max-width:780px;padding:18px 16px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.06)}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;word-break:break-word}
+    a{color:#22D3EE}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div id="msg">جارٍ التحويل...</div>
+    <div class="mono" id="info" style="margin-top:10px;opacity:.8"></div>
+  </div>
+
+<script>
+(async () => {
+  const msg = document.getElementById("msg");
+  const info = document.getElementById("info");
+
+  const u = new URL(location.href);
+  const slug = (u.searchParams.get("s") || "").trim();
+  const direct = (u.searchParams.get("to") || "").trim(); // خيار تحويل مباشر (اختياري)
+
+  // allow direct redirect: r.html?to=https://example.com
+  if (direct) {
+    try {
+      const to = new URL(direct);
+      location.replace(to.href);
+      return;
+    } catch {
+      msg.textContent = "رابط (to) غير صالح.";
+      info.textContent = direct;
+      return;
+    }
+  }
+
+  if (!slug) {
+    msg.textContent = "لم يتم تحديد Slug.";
+    info.innerHTML = `استخدم: <span class="mono">r.html?s=slug</span>`;
+    return;
+  }
+
+  const base = new URL(".", location.href).toString();
+  const dbUrl = base + "links.json?ts=" + Date.now();
+
+  try {
+    const res = await fetch(dbUrl, { cache: "no-store" });
+    const db = await res.json();
+
+    const item = db?.[slug];
+    const target = item?.url || item;
+
+    if (!target) {
+      msg.textContent = "Slug غير موجود.";
+      info.innerHTML = `Slug: <span class="mono">${slug}</span>`;
+      return;
+    }
+
+    const to = new URL(target);
+    location.replace(to.href);
+  } catch (e) {
+    msg.textContent = "تعذر قراءة links.json.";
+    info.textContent = String(e);
+  }
+})();
+</script>
+</body>
+</html>
