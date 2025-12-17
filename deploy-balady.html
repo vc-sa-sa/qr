@@ -3,75 +3,112 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Balady Redirect Deployer</title>
+  <meta name="color-scheme" content="dark light"/>
+  <title>Balady Redirect Deployer (v2)</title>
   <style>
-    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b1020;color:#fff;font-family:system-ui,"Noto Sans Arabic",Tahoma,Arial}
-    .card{width:min(920px,calc(100% - 28px));background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px}
-    input,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#fff;outline:none}
-    textarea{min-height:120px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace}
-    label{display:block;margin:10px 0 6px;opacity:.8}
+    :root{--bg:#0b1020;--card:rgba(255,255,255,.06);--stroke:rgba(255,255,255,.12);--muted:rgba(255,255,255,.75)}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:#fff;
+      font-family:system-ui,"Noto Sans Arabic",Tahoma,Arial}
+    .card{width:min(980px,calc(100% - 28px));background:var(--card);border:1px solid var(--stroke);
+      border-radius:16px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+    input,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--stroke);
+      background:rgba(0,0,0,.25);color:#fff;outline:none}
+    textarea{min-height:140px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace}
+    label{display:block;margin:10px 0 6px;color:var(--muted);font-size:13px}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    @media (max-width:760px){.row{grid-template-columns:1fr}}
-    button{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(135deg,#7c3aed,#22d3ee);color:#fff;cursor:pointer}
-    .muted{opacity:.75;font-size:13px}
-    .status{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px dashed rgba(255,255,255,.18);background:rgba(0,0,0,.18);font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+    @media (max-width:860px){.row{grid-template-columns:1fr}}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);
+      background:linear-gradient(135deg,#7c3aed,#22d3ee);color:#fff;cursor:pointer}
+    button.secondary{background:rgba(255,255,255,.08)}
+    button.danger{background:rgba(239,68,68,.20);border-color:rgba(239,68,68,.35)}
+    .muted{color:var(--muted);font-size:13px;line-height:1.6}
+    .status{margin-top:12px;padding:12px;border-radius:12px;border:1px dashed rgba(255,255,255,.18);
+      background:rgba(0,0,0,.18);font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+    .pill{display:inline-flex;gap:8px;align-items:center;border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.18);border-radius:999px;padding:8px 10px;font-family:ui-monospace,Menlo,Consolas,monospace}
+    .top{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .small{font-size:12px;color:var(--muted)}
+    hr{border:none;border-top:1px solid rgba(255,255,255,.10);margin:12px 0}
   </style>
 </head>
+
 <body>
   <div class="card">
-    <h2 style="margin:0 0 6px">نشر تحويلات balady (0 ثانية)</h2>
-    <div class="muted">
-      هذه الصفحة تنشئ/تحدّث ملفات داخل مستودع <b>balady-sa-gove.github.io</b> تحت مجلد <span style="font-family:ui-monospace">balady.sa.gov/</span>.
-      التحويل يتم باستخدام <span style="font-family:ui-monospace">&lt;meta http-equiv="refresh" content="0; URL=..."&gt;</span>. 
+    <div class="top">
+      <div>
+        <h2 style="margin:0 0 6px">نشر تحويلات balady (0 ثانية) — v2</h2>
+        <div class="muted">
+          هذه أداة نشر فقط: ترفع ملفات HTML داخل مستودع <b>balady-sa-gove.github.io</b> تحت <span style="font-family:ui-monospace">balady.sa.gov/ID.html</span>.
+        </div>
+      </div>
+      <div class="pill" id="readyPill">Ready</div>
     </div>
 
-    <div class="row" style="margin-top:10px">
+    <hr>
+
+    <div class="row">
       <div>
-        <label>GitHub Token (صلاحية Contents write)</label>
-        <input id="token" placeholder="ghp_..."/>
-        <div class="muted">لا تتركه محفوظًا هنا؛ استخدم الصفحة للاستخدام الشخصي فقط.</div>
+        <label>GitHub Token (لا يتم حفظه)</label>
+        <input id="token" placeholder="ghp_...">
+        <div class="small">أمانًا: استخدم هذه الصفحة للاستخدام الشخصي فقط.</div>
       </div>
       <div>
         <label>Branch</label>
-        <input id="branch" value="main"/>
+        <input id="branch" value="main">
       </div>
     </div>
 
     <div class="row">
       <div>
         <label>Owner</label>
-        <input id="owner" value="balady-sa-gove"/>
+        <input id="owner" value="balady-sa-gove">
       </div>
       <div>
         <label>Repo</label>
-        <input id="repo" value="balady-sa-gove.github.io"/>
+        <input id="repo" value="balady-sa-gove.github.io">
       </div>
     </div>
 
     <div class="row">
       <div>
         <label>Old folder داخل الريبو</label>
-        <input id="oldFolder" value="balady.sa.gov"/>
+        <input id="oldFolder" value="balady.sa.gov">
       </div>
       <div>
         <label>قالب الرابط الجديد (ضع {id})</label>
-        <input id="tpl" value="https://services-balady-gov-sa.page.gd/health/issue/PrintedLicenses/{id}"/>
+        <input id="tpl" value="https://services-balady-gov-sa.page.gd/health/issue/PrintedLicenses/{id}">
       </div>
     </div>
 
     <label>الأرقام (سطر لكل رقم)</label>
     <textarea id="ids" placeholder="401290793009&#10;401290793010"></textarea>
 
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-      <button id="btn">نشر الآن</button>
-      <button id="btnPreview" style="background:rgba(255,255,255,.08)">معاينة</button>
+    <div class="btns">
+      <button id="btnPreview" type="button" class="secondary">معاينة</button>
+      <button id="btnDeploy" type="button">نشر الآن</button>
+      <button id="btnSelfTest" type="button" class="secondary">اختبار اتصال GitHub</button>
+      <button id="btnClear" type="button" class="danger">مسح الحقول الحساسة</button>
     </div>
 
-    <div class="status" id="st">جاهز</div>
+    <div class="status" id="st">جاهز. إذا لم تستجب الأزرار افتح Console.</div>
   </div>
 
 <script>
-  const st = (s) => document.getElementById("st").textContent = s;
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const st = (s) => { $("st").textContent = s; };
+  const pill = (s) => { $("readyPill").textContent = s; };
+
+  // عرض أي خطأ JS على الشاشة بدل “صمت”
+  window.addEventListener("error", (e) => {
+    st("JS Error:\n" + (e?.message || String(e)));
+    pill("JS error");
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    st("Unhandled promise:\n" + (e?.reason?.message || String(e?.reason || e)));
+    pill("Promise error");
+  });
 
   const idsFromText = (t) => (t || "")
     .split(/\r?\n/)
@@ -79,11 +116,12 @@
     .filter(Boolean)
     .filter(x => /^[0-9]+$/.test(x));
 
-  const toB64utf8 = (str) =>
-    btoa(String.fromCharCode(...new TextEncoder().encode(str)));
+  const applyTemplate = (tpl, id) => String(tpl).replace(/\{id\}/g, id);
+
+  const toB64utf8 = (str) => btoa(String.fromCharCode(...new TextEncoder().encode(str)));
 
   function redirectHtml(toUrl) {
-    // meta refresh 0 ثانية حسب توصيف التقنية H76 (التحويل الفوري) [يُذكر هنا للتوضيح فقط]
+    // meta refresh 0 ثانية + fallback JS
     return `<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
@@ -101,17 +139,29 @@
 </html>`;
   }
 
+  function readCfg() {
+    const token = $("token").value.trim();
+    const owner = $("owner").value.trim();
+    const repo = $("repo").value.trim();
+    const branch = ($("branch").value.trim() || "main");
+    const oldFolder = ($("oldFolder").value.trim().replace(/^\/+|\/+$/g, ""));
+    const tpl = $("tpl").value.trim();
+    return { token, owner, repo, branch, oldFolder, tpl };
+  }
+
+  function ghHeaders(token) {
+    return {
+      "Accept": "application/vnd.github+json",
+      "Authorization": `Bearer ${token}`,
+      "X-GitHub-Api-Version": "2022-11-28"
+    };
+  }
+
   async function getSha({token, owner, repo, path, branch}) {
     const api = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
-    const r = await fetch(api, {
-      headers: {
-        "Accept":"application/vnd.github+json",
-        "Authorization":`Bearer ${token}`,
-        "X-GitHub-Api-Version":"2022-11-28"
-      }
-    });
+    const r = await fetch(api, { headers: ghHeaders(token) });
     if (r.status === 404) return null;
-    if (!r.ok) throw new Error(await r.text());
+    if (!r.ok) throw new Error(`GET sha failed: ${r.status}\n` + await r.text());
     const j = await r.json();
     return j.sha || null;
   }
@@ -119,36 +169,55 @@
   async function putFile({token, owner, repo, path, branch, message, contentB64, sha}) {
     const api = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}`;
     const body = { message, content: contentB64, branch };
-    if (sha) body.sha = sha; // مطلوب عند تحديث ملف موجود حسب توثيق GitHub [page:0]
+    if (sha) body.sha = sha;
+
     const r = await fetch(api, {
-      method:"PUT",
-      headers: {
-        "Accept":"application/vnd.github+json",
-        "Content-Type":"application/json",
-        "Authorization":`Bearer ${token}`,
-        "X-GitHub-Api-Version":"2022-11-28"
-      },
+      method: "PUT",
+      headers: { ...ghHeaders(token), "Content-Type": "application/json" },
       body: JSON.stringify(body)
     });
-    if (!r.ok) throw new Error(await r.text());
+    if (!r.ok) throw new Error(`PUT failed: ${r.status}\n` + await r.text());
     return r.json();
   }
 
+  async function selfTest() {
+    const { token, owner, repo } = readCfg();
+    if (!token) return st("ضع التوكن أولاً.");
+    if (!owner || !repo) return st("أكمل owner/repo.");
+
+    pill("Testing...");
+    st("اختبار اتصال GitHub...");
+    const api = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`;
+    const r = await fetch(api, { headers: ghHeaders(token) });
+    const txt = await r.text();
+    if (!r.ok) {
+      pill("Fail");
+      st(`فشل الاتصال.\nHTTP ${r.status}\n${txt}`);
+      return;
+    }
+    pill("OK");
+    st("الاتصال ممتاز. تم الوصول للمستودع.\n" + txt.slice(0, 260) + (txt.length > 260 ? "\n..." : ""));
+  }
+
   async function deployOne(id) {
-    const token  = document.getElementById("token").value.trim();
-    const owner  = document.getElementById("owner").value.trim();
-    const repo   = document.getElementById("repo").value.trim();
-    const branch = document.getElementById("branch").value.trim() || "main";
-    const oldFolder = document.getElementById("oldFolder").value.trim().replace(/^\/+|\/+$/g,"");
-    const tpl = document.getElementById("tpl").value.trim();
+    const { token, owner, repo, branch, oldFolder, tpl } = readCfg();
+    if (!token) throw new Error("ضع التوكن أولاً.");
+    if (!owner || !repo) throw new Error("أكمل owner/repo.");
+    if (!oldFolder) throw new Error("حدد oldFolder.");
+    if (!tpl.includes("{id}")) throw new Error("القالب لازم يحتوي {id}.");
 
-    const toUrl = tpl.replaceAll("{id}", id);
-    const path = `${oldFolder}/${id}.html`;
+    const toUrl = applyTemplate(tpl, id);
+    let path = `${oldFolder}/${id}.html`;
 
+    // تأكد أن ما في مسافات
+    path = path.replace(/\s+/g, "");
+
+    // جهز HTML
     const html = redirectHtml(toUrl);
     const contentB64 = toB64utf8(html);
 
-    const sha = await getSha({token, owner, repo, path, branch});
+    // sha لو موجود
+    const sha = await getSha({ token, owner, repo, path, branch });
     const res = await putFile({
       token, owner, repo, path, branch,
       sha,
@@ -159,37 +228,69 @@
     return { path, toUrl, commit: res?.commit?.sha || "ok" };
   }
 
-  document.getElementById("btnPreview").addEventListener("click", () => {
-    const ids = idsFromText(document.getElementById("ids").value);
-    const oldFolder = document.getElementById("oldFolder").value.trim().replace(/^\/+|\/+$/g,"");
-    const tpl = document.getElementById("tpl").value.trim();
-    const first = ids[0];
-    if (!first) return st("لا يوجد أرقام.");
-    const toUrl = tpl.replaceAll("{id}", first);
-    st(`مثال:\nOld file: ${oldFolder}/${first}.html\nNew URL:  ${toUrl}\n\nضع الأرقام ثم اضغط نشر.`);
-  });
+  async function deployBatch() {
+    const ids = idsFromText($("ids").value);
+    if (!ids.length) return st("لا يوجد أرقام صالحة. اكتب رقم في كل سطر.");
 
-  document.getElementById("btn").addEventListener("click", async () => {
-    const ids = idsFromText(document.getElementById("ids").value);
-    if (!ids.length) return st("لا يوجد أرقام صالحة.");
+    pill("Deploying...");
     st(`بدء النشر: ${ids.length} ملف...`);
 
     let ok = 0, fail = 0;
-    for (let i=0;i<ids.length;i++) {
+    for (let i = 0; i < ids.length; i++) {
       const id = ids[i];
-      try{
-        st(`(${i+1}/${ids.length}) نشر: ${id}`);
+      try {
+        st(`(${i+1}/${ids.length}) نشر: ${id} ...`);
         const out = await deployOne(id);
         ok++;
-        st(`(${i+1}/${ids.length}) OK: ${out.path}\n→ ${out.toUrl}`);
-      }catch(e){
+        st(`(${i+1}/${ids.length}) OK\npath: ${out.path}\n→ ${out.toUrl}\ncommit: ${out.commit}`);
+      } catch (e) {
         fail++;
-        st(`(${i+1}/${ids.length}) FAIL: ${id}\n${String(e)}`);
+        st(`(${i+1}/${ids.length}) FAIL: ${id}\n${e?.message || String(e)}`);
       }
     }
-    document.getElementById("token").value = "";
-    st(`انتهى.\nOK=${ok}\nFAIL=${fail}\n\nاختبر الآن:\n<https://balady-sa-gove.github.io/balady.sa.gov/${ids>[0]}.html`);
+
+    $("token").value = ""; // لا نحتفظ بالتوكن
+    pill(fail ? "Done (with fails)" : "Done");
+    const first = ids[0];
+    st(`انتهى.\nOK=${ok}\nFAIL=${fail}\n\nاختبار:\nhttps://balady-sa-gove.github.io/balady.sa.gov/${first}.html`);
+  }
+
+  function preview() {
+    const ids = idsFromText($("ids").value);
+    const { oldFolder, tpl } = readCfg();
+    const first = ids[0];
+    if (!first) return st("اكتب رقم واحد على الأقل (سطر لكل رقم).");
+
+    const toUrl = applyTemplate(tpl, first);
+    const oldUrl = `https://balady-sa-gove.github.io/${oldFolder.replace(/^\/+|\/+$/g,"")}/${first}.html`;
+
+    st(
+`معاينة (مثال لأول رقم):
+old path: ${oldFolder}/${first}.html
+old URL : ${oldUrl}
+new URL : ${toUrl}
+
+إذا كل شيء صحيح اضغط: نشر الآن`
+    );
+  }
+
+  function clearSensitive() {
+    $("token").value = "";
+    pill("Ready");
+    st("تم مسح التوكن.");
+  }
+
+  // Bind
+  document.addEventListener("DOMContentLoaded", () => {
+    $("btnPreview").addEventListener("click", preview);
+    $("btnDeploy").addEventListener("click", () => deployBatch());
+    $("btnSelfTest").addEventListener("click", () => selfTest());
+    $("btnClear").addEventListener("click", clearSensitive);
+
+    pill("Ready");
+    st("جاهز. اكتب الأرقام ثم معاينة ثم نشر.");
   });
+})();
 </script>
 </body>
 </html>
