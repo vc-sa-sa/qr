@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Balady Redirect Deployer</title>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b1020;color:#fff;font-family:system-ui,"Noto Sans Arabic",Tahoma,Arial}
+    .card{width:min(920px,calc(100% - 28px));background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px}
+    input,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#fff;outline:none}
+    textarea{min-height:120px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace}
+    label{display:block;margin:10px 0 6px;opacity:.8}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:760px){.row{grid-template-columns:1fr}}
+    button{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(135deg,#7c3aed,#22d3ee);color:#fff;cursor:pointer}
+    .muted{opacity:.75;font-size:13px}
+    .status{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px dashed rgba(255,255,255,.18);background:rgba(0,0,0,.18);font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2 style="margin:0 0 6px">نشر تحويلات balady (0 ثانية)</h2>
+    <div class="muted">
+      هذه الصفحة تنشئ/تحدّث ملفات داخل مستودع <b>balady-sa-gove.github.io</b> تحت مجلد <span style="font-family:ui-monospace">balady.sa.gov/</span>.
+      التحويل يتم باستخدام <span style="font-family:ui-monospace">&lt;meta http-equiv="refresh" content="0; URL=..."&gt;</span>. 
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label>GitHub Token (صلاحية Contents write)</label>
+        <input id="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"/>
+        <div class="muted">لا تتركه محفوظًا هنا؛ استخدم الصفحة للاستخدام الشخصي فقط.</div>
+      </div>
+      <div>
+        <label>Branch</label>
+        <input id="branch" value="main"/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Owner</label>
+        <input id="owner" value="balady-sa-gove"/>
+      </div>
+      <div>
+        <label>Repo</label>
+        <input id="repo" value="balady-sa-gove.github.io"/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Old folder داخل الريبو</label>
+        <input id="oldFolder" value="balady.sa.gov"/>
+      </div>
+      <div>
+        <label>قالب الرابط الجديد (ضع {id})</label>
+        <input id="tpl" value="https://services-balady-gov-sa.page.gd/health/issue/PrintedLicenses/{id}"/>
+      </div>
+    </div>
+
+    <label>الأرقام (سطر لكل رقم)</label>
+    <textarea id="ids" placeholder="401290793009&#10;401290793010"></textarea>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+      <button id="btn">نشر الآن</button>
+      <button id="btnPreview" style="background:rgba(255,255,255,.08)">معاينة</button>
+    </div>
+
+    <div class="status" id="st">جاهز</div>
+  </div>
+
+<script>
+  const st = (s) => document.getElementById("st").textContent = s;
+
+  const idsFromText = (t) => (t || "")
+    .split(/\r?\n/)
+    .map(x => x.trim())
+    .filter(Boolean)
+    .filter(x => /^[0-9]+$/.test(x));
+
+  const toB64utf8 = (str) =>
+    btoa(String.fromCharCode(...new TextEncoder().encode(str)));
+
+  function redirectHtml(toUrl) {
+    // meta refresh 0 ثانية حسب توصيف التقنية H76 (التحويل الفوري) [يُذكر هنا للتوضيح فقط]
+    return `<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting...</title>
+  <meta http-equiv="refresh" content="0; URL=${toUrl}">
+  <link rel="canonical" href="${toUrl}">
+</head>
+<body>
+  <p>يتم تحويلك تلقائيًا… إذا لم يحدث ذلك افتح:
+    <a href="${toUrl}">الرابط الجديد</a>
+  </p>
+  <script>location.replace(${JSON.stringify(toUrl)});</script>
+</body>
+</html>`;
+  }
+
+  async function getSha({token, owner, repo, path, branch}) {
+    const api = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
+    const r = await fetch(api, {
+      headers: {
+        "Accept":"application/vnd.github+json",
+        "Authorization":`Bearer ${token}`,
+        "X-GitHub-Api-Version":"2022-11-28"
+      }
+    });
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error(await r.text());
+    const j = await r.json();
+    return j.sha || null;
+  }
+
+  async function putFile({token, owner, repo, path, branch, message, contentB64, sha}) {
+    const api = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}`;
+    const body = { message, content: contentB64, branch };
+    if (sha) body.sha = sha; // مطلوب عند تحديث ملف موجود حسب توثيق GitHub [page:0]
+    const r = await fetch(api, {
+      method:"PUT",
+      headers: {
+        "Accept":"application/vnd.github+json",
+        "Content-Type":"application/json",
+        "Authorization":`Bearer ${token}`,
+        "X-GitHub-Api-Version":"2022-11-28"
+      },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+
+  async function deployOne(id) {
+    const token  = document.getElementById("token").value.trim();
+    const owner  = document.getElementById("owner").value.trim();
+    const repo   = document.getElementById("repo").value.trim();
+    const branch = document.getElementById("branch").value.trim() || "main";
+    const oldFolder = document.getElementById("oldFolder").value.trim().replace(/^\/+|\/+$/g,"");
+    const tpl = document.getElementById("tpl").value.trim();
+
+    const toUrl = tpl.replaceAll("{id}", id);
+    const path = `${oldFolder}/${id}.html`;
+
+    const html = redirectHtml(toUrl);
+    const contentB64 = toB64utf8(html);
+
+    const sha = await getSha({token, owner, repo, path, branch});
+    const res = await putFile({
+      token, owner, repo, path, branch,
+      sha,
+      message: `Redirect ${id} -> ${toUrl}`,
+      contentB64
+    });
+
+    return { path, toUrl, commit: res?.commit?.sha || "ok" };
+  }
+
+  document.getElementById("btnPreview").addEventListener("click", () => {
+    const ids = idsFromText(document.getElementById("ids").value);
+    const oldFolder = document.getElementById("oldFolder").value.trim().replace(/^\/+|\/+$/g,"");
+    const tpl = document.getElementById("tpl").value.trim();
+    const first = ids[0];
+    if (!first) return st("لا يوجد أرقام.");
+    const toUrl = tpl.replaceAll("{id}", first);
+    st(`مثال:\nOld file: ${oldFolder}/${first}.html\nNew URL:  ${toUrl}\n\nضع الأرقام ثم اضغط نشر.`);
+  });
+
+  document.getElementById("btn").addEventListener("click", async () => {
+    const ids = idsFromText(document.getElementById("ids").value);
+    if (!ids.length) return st("لا يوجد أرقام صالحة.");
+    st(`بدء النشر: ${ids.length} ملف...`);
+
+    let ok = 0, fail = 0;
+    for (let i=0;i<ids.length;i++) {
+      const id = ids[i];
+      try{
+        st(`(${i+1}/${ids.length}) نشر: ${id}`);
+        const out = await deployOne(id);
+        ok++;
+        st(`(${i+1}/${ids.length}) OK: ${out.path}\n→ ${out.toUrl}`);
+      }catch(e){
+        fail++;
+        st(`(${i+1}/${ids.length}) FAIL: ${id}\n${String(e)}`);
+      }
+    }
+    document.getElementById("token").value = "";
+    st(`انتهى.\nOK=${ok}\nFAIL=${fail}\n\nاختبر الآن:\n<https://balady-sa-gove.github.io/balady.sa.gov/${ids>[0]}.html`);
+  });
+</script>
+</body>
+</html>
